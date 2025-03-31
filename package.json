@@ -1,0 +1,22 @@
+{
+  "name": "cfw-lyric",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "db:generate": "drizzle-kit generate",
+    "db:up": "drizzle-kit up"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.4.3",
+    "@libsql/client": "^0.14.0",
+    "bcryptjs": "^3.0.2",
+    "drizzle-orm": "^0.40.0",
+    "hono": "^4.7.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "@types/bun": "^1.2.5",
+    "drizzle-kit": "^0.30.5",
+    "wrangler": "^3.114.1"
+  }
+}

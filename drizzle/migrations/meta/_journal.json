@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1741664874104,
+      "tag": "0000_slippery_famine",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1741753446755,
+      "tag": "0001_short_silver_sable",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1741753502252,
+      "tag": "0002_spotty_champions",
+      "breakpoints": true
+    }
+  ]
+}
