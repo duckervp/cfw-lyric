@@ -5,16 +5,24 @@ import { UserRepository } from "../repository/userRepository";
 import { LoginInput, RegisterInput } from "../schema/userSchema";
 import { parseTimeToSeconds } from "../utils/time";
 import { Env } from "../types/env";
+import { Resp, Response } from "../utils/response";
+
+type TokenData = {
+  accessToken: string;
+  refreshToken: string;
+}
 
 export class AuthService {
   private userRepo: UserRepository;
   private JWT_SECRET: string;
-  private JWT_EXPIRES_IN: string;
+  private ACCESS_TOKEN_EXPIRES_IN: string;
+  private REFRESH_TOKEN_EXPIRES_IN: string;
 
   constructor(c: Context<Env>, userRepo: UserRepository) {
     this.userRepo = userRepo;
     this.JWT_SECRET = c.env.JWT_SECRET;
-    this.JWT_EXPIRES_IN = c.env.JWT_EXPIRES_IN;
+    this.ACCESS_TOKEN_EXPIRES_IN = c.env.ACCESS_TOKEN_EXPIRES_IN;
+    this.REFRESH_TOKEN_EXPIRES_IN = c.env.REFRESH_TOKEN_EXPIRES_IN;
   }
 
   // Hash password before storing
@@ -32,24 +40,32 @@ export class AuthService {
   }
 
   // Generate token
-  private async generateToken(user: any) {
-    const expiresInSeconds = parseTimeToSeconds(this.JWT_EXPIRES_IN);
+  private async generateToken(user: any): Promise<TokenData> {
+    const accessTokenExpiresInSeconds = parseTimeToSeconds(this.ACCESS_TOKEN_EXPIRES_IN);
+    const refreshTokenExpiresInSeconds = parseTimeToSeconds(this.REFRESH_TOKEN_EXPIRES_IN);
     const iat = Math.floor(Date.now() / 1000);
-    const exp = iat + expiresInSeconds;
     const payload = {
       userId: user.id,
+      iat
+    }
+    const accessTokenPayload = {
+      ...payload,
       username: user.email,
-      iat,
-      exp,
+      role: user.role,
+      exp: iat + accessTokenExpiresInSeconds,
+    };
+    const refreshTokenPayload = {
+      ...payload,
+      exp: iat + refreshTokenExpiresInSeconds
     };
     return {
-      token: await sign(payload, this.JWT_SECRET),
-      expiresIn: this.JWT_EXPIRES_IN,
+      accessToken: await sign(accessTokenPayload, this.JWT_SECRET),
+      refreshToken: await sign(refreshTokenPayload, this.JWT_SECRET)
     };
   }
 
   // Login
-  async login(req: LoginInput) {
+  async login(req: LoginInput): Promise<Resp<TokenData>> {
     const user = await this.userRepo.findByEmail(req.email);
     if (!user) {
       throw new Error("User not found");
@@ -60,11 +76,13 @@ export class AuthService {
       throw new Error("Invalid credentials");
     }
 
-    return await this.generateToken(user);
+    const data = await this.generateToken(user);
+
+    return Response.success(data);
   }
 
   // Register user
-  async registerUser(req: RegisterInput) {
+  async registerUser(req: RegisterInput): Promise<Resp<TokenData>> {
     const hashedPassword = await this.hashPassword(req.password);
 
     const user = await this.userRepo.create({
@@ -72,6 +90,8 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    return await this.generateToken(user);
+    const data = await this.generateToken(user);
+
+    return Response.success(data);
   }
 }

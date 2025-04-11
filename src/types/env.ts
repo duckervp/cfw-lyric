@@ -10,7 +10,8 @@ export type Env = {
   Bindings: {
     DB: D1Database;
     JWT_SECRET: string;
-    JWT_EXPIRES_IN: string;
+    ACCESS_TOKEN_EXPIRES_IN: string;
+    REFRESH_TOKEN_EXPIRES_IN: string;
   }
   Variables: {
     db: DrizzleD1Database;
