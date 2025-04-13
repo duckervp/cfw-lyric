@@ -25,7 +25,8 @@
     {
       "binding": "DB",
       "database_name": "cfw-lyric-d1",
-      "database_id": "6b4b356a-7a90-47bc-b8a9-18da4f308a96"
+      "database_id": "6b4b356a-7a90-47bc-b8a9-18da4f308a96",
+      "migrations_dir": "./drizzle/migrations"
     }
   ]
   // "ai": {

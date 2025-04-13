@@ -27,6 +27,7 @@ export const user = table(
     password: text().notNull(),
     imageUrl: text("image_url"),
     active: int({ mode: "boolean" }),
+    verified: int({ mode: "boolean" }).default(false),
     role: text().$type<"user" | "admin">().default("user"),
     ...audit,
   },

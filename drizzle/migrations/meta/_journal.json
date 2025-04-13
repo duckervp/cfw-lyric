@@ -22,6 +22,13 @@
       "when": 1741753502252,
       "tag": "0002_spotty_champions",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1744548725806,
+      "tag": "0003_spotty_ultimo",
+      "breakpoints": true
     }
   ]
 }

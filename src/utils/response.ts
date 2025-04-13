@@ -1,5 +1,5 @@
 export type Resp<T> = {
-  status: number;
+  code: number;
 };
 
 export type SuccessResp<T> = Resp<T> & {
@@ -20,34 +20,28 @@ export type PaginatedResp<T> = SuccessResp<T> & {
 };
 
 export const Response = {
-  success: <T>(data: T, status = 200): SuccessResp<T> => {
+  success: <T>(data: T): SuccessResp<T> => {
     return {
-      status,
+      code: 200,
       data,
     };
   },
-  badRequest: (message: string, status = 400): ErrorResp => {
+  error: (code = 500, message: string): ErrorResp => {
     return {
-      status,
+      code,
       message,
     };
   },
-  notFound: (message: string, status = 404): ErrorResp => {
-    return {
-      status,
-      message,
-    };
+  badRequest: (message: string): ErrorResp => {
+    return Response.error(400, message);
   },
-  unauthorized: (message: string, status = 401): ErrorResp => {
-    return {
-      status,
-      message,
-    };
+  notFound: (message: string): ErrorResp => {
+    return Response.error(404, message);
   },
-  forbidden: (message: string, status = 403): ErrorResp => {
-    return {
-      status,
-      message,
-    };
-  }
-}
+  unauthorized: ( message: string): ErrorResp => {
+    return Response.error(401, message);
+  },
+  forbidden: (message: string): ErrorResp => {
+    return Response.error(403, message);
+  },
+};

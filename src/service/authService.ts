@@ -6,6 +6,7 @@ import { LoginInput, RegisterInput } from "../schema/userSchema";
 import { parseTimeToSeconds } from "../utils/time";
 import { Env } from "../types/env";
 import { Resp, Response } from "../utils/response";
+import { ApiException } from "../utils/apiException";
 
 type TokenData = {
   accessToken: string;
@@ -68,12 +69,12 @@ export class AuthService {
   async login(req: LoginInput): Promise<Resp<TokenData>> {
     const user = await this.userRepo.findByEmail(req.email);
     if (!user) {
-      throw new Error("User not found");
+      throw new ApiException(401, 'Invalid credentials');
     }
 
     const isValid = await this.verifyPassword(req.password, user.password);
     if (!isValid) {
-      throw new Error("Invalid credentials");
+      throw new ApiException(401, "Invalid credentials");
     }
 
     const data = await this.generateToken(user);
