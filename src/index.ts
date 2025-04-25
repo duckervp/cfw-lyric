@@ -8,6 +8,7 @@ import { userSchema } from "./schema/userSchema";
 import { zValidator } from "@hono/zod-validator";
 import { songSchema } from "./schema/songSchema";
 import { cors } from "hono/cors";
+import { Response } from "./utils/response";
 
 // ------------------------------------------------------------------
 // App
@@ -46,13 +47,23 @@ app.onError(async (err, c) => {
 app.post("/api/v1/auth/login", async (c) => {
   const { email, password } = await c.req.json();
   const authService = c.get(Service.AUTH);
-  return c.json(await authService.login({ email, password }));
+  return c.json(Response.success(await authService.login({ email, password })));
 });
 
 app.post("/api/v1/auth/register", async (c) => {
   const { name, email, password } = await c.req.json();
   const authService = c.get(Service.AUTH);
-  return c.json(await authService.registerUser({ name, email, password }));
+  return c.json(
+    Response.success(await authService.registerUser({ name, email, password }))
+  );
+});
+
+app.post("/api/v1/auth/refresh-token", async (c) => {
+  const { refreshToken } = await c.req.json();
+  const authService = c.get(Service.AUTH);
+  return c.json(
+    Response.success(await authService.refresh(refreshToken))
+  );
 });
 
 // ------------------------------------------------------------------
@@ -60,13 +71,16 @@ app.post("/api/v1/auth/register", async (c) => {
 // ------------------------------------------------------------------
 
 app.get("/api/v1/user", async (c) => {
+  const { name = '' } = c.req.query();
   const userService = c.get(Service.USER);
-  return c.json(await userService.getAllUsers());
+  return c.json(Response.success(await userService.getAllUsers(name)));
 });
 
 app.get("/api/v1/user/:id", async (c) => {
   const userService = c.get(Service.USER);
-  return c.json(await userService.getUserById(Number(c.req.param("id"))));
+  return c.json(
+    Response.success(await userService.getUserById(Number(c.req.param("id"))))
+  );
 });
 
 app.post("/api/v1/user", zValidator("json", userSchema), async (c) => {
