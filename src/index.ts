@@ -9,6 +9,7 @@ import { zValidator } from "@hono/zod-validator";
 import { songSchema } from "./schema/songSchema";
 import { cors } from "hono/cors";
 import { Response } from "./utils/response";
+import { artistSchema } from "./schema/artistSchema";
 
 // ------------------------------------------------------------------
 // App
@@ -30,6 +31,13 @@ app.use("*", initRepositories);
 app.use("*", initServices);
 app.use("/api/v1/user/*", auth);
 app.use("/api/v1/song/*", async (c, next) => {
+  if (c.req.method === "GET") {
+    return next();
+  } else {
+    await auth(c, next);
+  }
+});
+app.use("/api/v1/artist/*", async (c, next) => {
   if (c.req.method === "GET") {
     return next();
   } else {
@@ -61,9 +69,7 @@ app.post("/api/v1/auth/register", async (c) => {
 app.post("/api/v1/auth/refresh-token", async (c) => {
   const { refreshToken } = await c.req.json();
   const authService = c.get(Service.AUTH);
-  return c.json(
-    Response.success(await authService.refresh(refreshToken))
-  );
+  return c.json(Response.success(await authService.refresh(refreshToken)));
 });
 
 // ------------------------------------------------------------------
@@ -71,7 +77,7 @@ app.post("/api/v1/auth/refresh-token", async (c) => {
 // ------------------------------------------------------------------
 
 app.get("/api/v1/user", async (c) => {
-  const { name = '' } = c.req.query();
+  const { name = "" } = c.req.query();
   const userService = c.get(Service.USER);
   return c.json(Response.success(await userService.getAllUsers(name)));
 });
@@ -85,7 +91,9 @@ app.get("/api/v1/user/:id", async (c) => {
 
 app.post("/api/v1/user", zValidator("json", userSchema), async (c) => {
   const userService = c.get(Service.USER);
-  return c.json(await userService.createUser(c.req.valid("json")));
+  return c.json(
+    Response.success(await userService.createUser(c.req.valid("json")))
+  );
 });
 
 app.patch(
@@ -94,9 +102,11 @@ app.patch(
   async (c) => {
     const userService = c.get(Service.USER);
     return c.json(
-      await userService.updateUser(
-        Number(c.req.param("id")),
-        c.req.valid("json")
+      Response.success(
+        await userService.updateUser(
+          Number(c.req.param("id")),
+          c.req.valid("json")
+        )
       )
     );
   }
@@ -104,7 +114,62 @@ app.patch(
 
 app.delete("/api/v1/user/:id", async (c) => {
   const userService = c.get(Service.USER);
-  return c.json(await userService.deleteUser(Number(c.req.param("id"))));
+  return c.json(
+    Response.success(await userService.deleteUser(Number(c.req.param("id"))))
+  );
+});
+
+// ------------------------------------------------------------------
+// Artist
+// ------------------------------------------------------------------
+
+app.get("/api/v1/artist", async (c) => {
+  const { name = "" } = c.req.query();
+  const artistService = c.get(Service.ARTIST);
+  return c.json(Response.success(await artistService.getAllArtists(name)));
+});
+
+app.get("/api/v1/artist/:id", async (c) => {
+  const artistService = c.get(Service.ARTIST);
+  return c.json(
+    Response.success(
+      Response.success(
+        await artistService.getArtistById(Number(c.req.param("id")))
+      )
+    )
+  );
+});
+
+app.post("/api/v1/artist", zValidator("json", artistSchema), async (c) => {
+  const artistService = c.get(Service.ARTIST);
+  return c.json(
+    Response.success(await artistService.createArtist(c.req.valid("json")))
+  );
+});
+
+app.patch(
+  "/api/v1/artist/:id",
+  zValidator("json", artistSchema.partial()),
+  async (c) => {
+    const artistService = c.get(Service.ARTIST);
+    return c.json(
+      Response.success(
+        await artistService.updateArtist(
+          Number(c.req.param("id")),
+          c.req.valid("json")
+        )
+      )
+    );
+  }
+);
+
+app.delete("/api/v1/artist/:id", async (c) => {
+  const artistService = c.get(Service.ARTIST);
+  return c.json(
+    Response.success(
+      await artistService.deleteArtist(Number(c.req.param("id")))
+    )
+  );
 });
 
 // ------------------------------------------------------------------
@@ -115,25 +180,30 @@ app.get("/api/v1/song", async (c) => {
   const songService = c.get(Service.SONG);
 
   const { title, artist, artistId, page, pageSize } = c.req.query();
-  return c.json(
-    await songService.getAllSongs(
-      title,
-      artist,
-      Number(artistId),
-      Number(page),
-      Number(pageSize)
-    )
+
+  const { data, meta } = await songService.getAllSongs(
+    title,
+    artist,
+    Number(artistId),
+    Number(page),
+    Number(pageSize)
   );
+  console.log(data, meta);
+  return c.json(Response.successWithPage(data, meta));
 });
 
 app.get("/api/v1/song/:id", async (c) => {
   const songService = c.get(Service.SONG);
-  return c.json(await songService.getSongById(Number(c.req.param("id"))));
+  return c.json(
+    Response.success(await songService.getSongById(Number(c.req.param("id"))))
+  );
 });
 
 app.post("/api/v1/song", zValidator("json", songSchema), async (c) => {
   const songService = c.get(Service.SONG);
-  return c.json(await songService.createSong(c.req.valid("json")));
+  return c.json(
+    Response.success(await songService.createSong(c.req.valid("json")))
+  );
 });
 
 app.patch(
@@ -142,9 +212,11 @@ app.patch(
   async (c) => {
     const songService = c.get(Service.SONG);
     return c.json(
-      await songService.updateSong(
-        Number(c.req.param("id")),
-        c.req.valid("json")
+      Response.success(
+        await songService.updateSong(
+          Number(c.req.param("id")),
+          c.req.valid("json")
+        )
       )
     );
   }
@@ -152,7 +224,9 @@ app.patch(
 
 app.delete("/api/v1/song/:id", async (c) => {
   const songService = c.get(Service.SONG);
-  return c.json(await songService.deleteSong(Number(c.req.param("id"))));
+  return c.json(
+    Response.success(await songService.deleteSong(Number(c.req.param("id"))))
+  );
 });
 
 export default app;

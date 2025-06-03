@@ -4,8 +4,8 @@ import { ArtistInput } from '../schema/artistSchema';
 export class ArtistService {
   constructor(private artistRepository: ArtistRepository) {}
 
-  async getAllArtists() {
-    return await this.artistRepository.findAll()
+  async getAllArtists(name: string) {
+    return await this.artistRepository.findAll(name)
   }
 
   async getArtistById(id: number) {

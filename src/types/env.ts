@@ -5,6 +5,8 @@ import { UserRepository } from "../repository/userRepository";
 import { SongRepository } from "../repository/songRepository";
 import { SongService } from "../service/songService";
 import { SongArtistRepository } from "../repository/songArtistRepository";
+import { ArtistRepository } from "../repository/artistRepository";
+import { ArtistService } from "../service/artistService";
 
 export type Env = {
   Bindings: {
@@ -17,11 +19,13 @@ export type Env = {
     db: DrizzleD1Database;
     // Repositories
     userRepository: UserRepository;
+    artistRepository: ArtistRepository;
     songRepository: SongRepository;
     songArtistRepository: SongArtistRepository;
     // Services
     authService: AuthService;
     userService: UserService;
+    artistService: ArtistService;
     songService: SongService;
   }
 }

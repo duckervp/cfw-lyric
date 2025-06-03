@@ -10,13 +10,16 @@ export type ErrorResp = Resp<null> & {
   message: string;
 };
 
+export type MetaData = {
+  unpaged: boolean;
+  page?: number;
+  pageSize?: number;
+  totalCount?: number;
+  totalPages?: number;
+};
+
 export type PaginatedResp<T> = SuccessResp<T> & {
-  meta?: {
-    page: number;
-    pageSize: number;
-    totalCount: number;
-    totalPages: number;
-  };
+  meta?: MetaData
 };
 
 export const Response = {
@@ -26,6 +29,15 @@ export const Response = {
       data,
     };
   },
+
+  successWithPage: <T>(data: T, meta: MetaData): PaginatedResp<T> => {
+    return {
+      code: 200,
+      data,
+      meta,
+    };
+  },
+
   error: (code = 500, message: string): ErrorResp => {
     return {
       code,
@@ -38,7 +50,7 @@ export const Response = {
   notFound: (message: string): ErrorResp => {
     return Response.error(404, message);
   },
-  unauthorized: ( message: string): ErrorResp => {
+  unauthorized: (message: string): ErrorResp => {
     return Response.error(401, message);
   },
   forbidden: (message: string): ErrorResp => {

@@ -3,7 +3,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { song, songArtist, artist as artistTable } from "../db/schema";
 
 export class SongRepository {
-  constructor(private db: DrizzleD1Database) {}
+  constructor(private db: DrizzleD1Database) { }
 
   async findAll(
     title?: string,
@@ -13,7 +13,11 @@ export class SongRepository {
     pageSize?: number
   ) {
     if (!page || !pageSize) {
-      return { data: this.db.select().from(song).all() };
+      return {
+        data: await this.db.select().from(song).all(), meta: {
+          unpaged: true
+        }
+      }
     }
 
     const offset = (page - 1) * pageSize;
@@ -24,9 +28,9 @@ export class SongRepository {
       .leftJoin(artistTable, eq(artistTable.id, songArtist.artistId))
       .where(
         and(
-          title !== undefined ? like(song.title, `%${title}%`) : undefined,
-          artist !== undefined ? like(artistTable.name, `%${artist}%`) : undefined,
-          artistId !== undefined ? eq(artistTable.id, artistId) : undefined
+          !!title ? like(song.title, `%${title}%`) : undefined,
+          !!artist ? like(artistTable.name, `%${artist}%`) : undefined,
+          !!artistId ? eq(artistTable.id, artistId) : undefined
         )
       )
       .limit(pageSize)
@@ -36,12 +40,22 @@ export class SongRepository {
     const totalSongs = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(song)
+      .leftJoin(songArtist, eq(song.id, songArtist.songId))
+      .leftJoin(artistTable, eq(artistTable.id, songArtist.artistId))
+      .where(
+        and(
+          !!title ? like(song.title, `%${title}%`) : undefined,
+          !!artist ? like(artistTable.name, `%${artist}%`) : undefined,
+          !!artistId ? eq(artistTable.id, artistId) : undefined
+        )
+      )
       .execute();
     const totalCount = totalSongs[0]?.count || 0;
 
     return {
       data: songList,
       meta: {
+        unpaged: false,
         page,
         pageSize,
         totalCount,

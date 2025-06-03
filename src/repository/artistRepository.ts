@@ -1,12 +1,12 @@
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, like } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { artist } from "../db/schema";
 
 export class ArtistRepository {
   constructor(private db: DrizzleD1Database) {}
 
-  async findAll() {
-    return await this.db.select().from(artist);
+  async findAll(name: string) {
+    return await this.db.select().from(artist).where(like(artist.name, `%${name}%`)).all();
   }
 
   async create(data: (typeof artist.$inferInsert)) {
