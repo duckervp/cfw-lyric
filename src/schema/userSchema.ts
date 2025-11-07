@@ -23,6 +23,7 @@ export const userSchema = z.object({
   name: z.string().min(3, { message: "Must be 3 or more characters long" }),
   imageUrl: z.string().optional(),
   active: z.boolean().optional(),
+  verified: z.boolean().optional(),
   role: z.enum(["user", "admin"]).optional(),
 });
 

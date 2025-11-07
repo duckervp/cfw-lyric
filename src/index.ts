@@ -10,6 +10,7 @@ import { songSchema } from "./schema/songSchema";
 import { cors } from "hono/cors";
 import { Response } from "./utils/response";
 import { artistSchema } from "./schema/artistSchema";
+import { getAuthenticatedUserId } from "./utils/auth";
 
 // ------------------------------------------------------------------
 // App
@@ -92,7 +93,7 @@ app.get("/api/v1/user/:id", async (c) => {
 app.post("/api/v1/user", zValidator("json", userSchema), async (c) => {
   const userService = c.get(Service.USER);
   return c.json(
-    Response.success(await userService.createUser(c.req.valid("json")))
+    Response.success(await userService.createUser(c.req.valid("json"), getAuthenticatedUserId(c)))
   );
 });
 
@@ -105,7 +106,8 @@ app.patch(
       Response.success(
         await userService.updateUser(
           Number(c.req.param("id")),
-          c.req.valid("json")
+          c.req.valid("json"), 
+          getAuthenticatedUserId(c)
         )
       )
     );

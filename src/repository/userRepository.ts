@@ -1,14 +1,40 @@
 import { eq, like } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { user } from "../db/schema";
+import { alias } from "drizzle-orm/sqlite-core";
 
 export class UserRepository {
-  constructor(private db: DrizzleD1Database) {}
+  constructor(private db: DrizzleD1Database) { }
 
   async findAll(name: string) {
     return await this.db
       .select()
       .from(user)
+      .where(like(user.name, `%${name}%`))
+      .all();
+  }
+
+  async findAll2(name: string) {
+    const createdBy = alias(user, "createdBy");
+    const updatedBy = alias(user, "updatedBy");
+
+    return await this.db
+      .select({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        active: user.active,
+        verified: user.verified,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        deletedAt: user.deletedAt,
+        createdByName: createdBy.name,
+        updatedByName: updatedBy.name,
+      })
+      .from(user)
+      .leftJoin(createdBy, eq(user.createdBy, createdBy.id))
+      .leftJoin(updatedBy, eq(user.updatedBy, updatedBy.id))
       .where(like(user.name, `%${name}%`))
       .all();
   }
