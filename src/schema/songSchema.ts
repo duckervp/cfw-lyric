@@ -4,7 +4,7 @@ const songArtistSchema = z.object({
   id: z.number().optional(),
   songId: z.number(),
   artistId: z.number(),
-  type: z.enum(["singer", "composer", "producer", "band"])
+  role: z.enum(["singer", "composer", "singer_composer"])
 })
 
 export const songSchema = z.object({

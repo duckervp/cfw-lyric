@@ -59,7 +59,8 @@ export const artist = table(
     id: int().primaryKey({ autoIncrement: true }),
     name: text(),
     imageUrl: text("image_url"),
-    description: text(),
+    bio: text(),
+    role: text().$type<"singer" | "composer" | "singer_composer">(),
     ...audit,
   },
   (table) => [index("name_idx").on(table.name)]
@@ -69,6 +70,6 @@ export const songArtist = table("song_artist", {
   id: int().primaryKey({ autoIncrement: true }),
   songId: int("song_id").references(() => song.id),
   artistId: int("artist_id").references(() => artist.id),
-  type: text().$type<"singer" | "composer" | "producer" | "band">(),
+  role: text().$type<"singer" | "composer" | "singer_composer">(),
   ...audit,
 });

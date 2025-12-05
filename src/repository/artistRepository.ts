@@ -3,7 +3,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { artist } from "../db/schema";
 
 export class ArtistRepository {
-  constructor(private db: DrizzleD1Database) {}
+  constructor(private db: DrizzleD1Database) { }
 
   async findAll(name: string) {
     return await this.db.select().from(artist).where(like(artist.name, `%${name}%`)).all();
@@ -14,6 +14,8 @@ export class ArtistRepository {
   }
 
   async update(id: number, data: Partial<typeof artist.$inferInsert>) {
+    console.log("DB object:", this.db);
+    console.log("Updating artist with ID:", id, "with data:", data);
     return await this.db
       .update(artist)
       .set(data)
@@ -40,6 +42,7 @@ export class ArtistRepository {
     return await this.db
       .select()
       .from(artist)
-      .where(eq(artist.id, id));
+      .where(eq(artist.id, id))
+      .get();
   }
 }

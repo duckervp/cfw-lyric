@@ -10,7 +10,7 @@ export class UserService {
   }
 
   async getUserById(id: number) {
-    return await this.userRepository.findById(id);
+    return await this.userRepository.findById2(id);
   }
 
   async createUser(userData: UserInput, creator: number) {

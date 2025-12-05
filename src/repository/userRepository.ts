@@ -29,8 +29,8 @@ export class UserRepository {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         deletedAt: user.deletedAt,
-        createdByName: createdBy.name,
-        updatedByName: updatedBy.name,
+        creatorName: createdBy.name,
+        updaterName: updatedBy.name,
       })
       .from(user)
       .leftJoin(createdBy, eq(user.createdBy, createdBy.id))
@@ -41,6 +41,30 @@ export class UserRepository {
 
   async findById(id: number) {
     return await this.db.select().from(user).where(eq(user.id, id)).get();
+  }
+
+  async findById2(id: number) {
+    const createdBy = alias(user, "createdBy");
+    const updatedBy = alias(user, "updatedBy");
+    return await this.db
+      .select({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        active: user.active,
+        verified: user.verified,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        deletedAt: user.deletedAt,
+        creatorName: createdBy.name,
+        updaterName: updatedBy.name,
+      })
+      .from(user)
+      .leftJoin(createdBy, eq(user.createdBy, createdBy.id))
+      .leftJoin(updatedBy, eq(user.updatedBy, updatedBy.id))
+      .where(eq(user.id, id))
+      .get();
   }
 
   async findByEmail(email: string) {

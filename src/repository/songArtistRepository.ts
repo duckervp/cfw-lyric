@@ -28,7 +28,7 @@ export class SongArtistRepository {
               .update(songArtist)
               .set({
                 artistId: data.artistId,
-                type: data.type,
+                role: data.role,
               })
               .where(eq(songArtist.id, data.id!))
           )

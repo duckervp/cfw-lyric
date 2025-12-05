@@ -3,7 +3,8 @@ import { z } from 'zod';
 export const artistSchema = z.object({
   name: z.string(),
   imageUrl: z.string(),
-  description: z.string(),
+  bio: z.string(),
+  role: z.enum(["singer", "composer", "singer_composer"])
 });
 
 // Type inference

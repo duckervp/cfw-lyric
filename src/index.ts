@@ -35,18 +35,19 @@ app.use("/api/v1/song/*", async (c, next) => {
   if (c.req.method === "GET") {
     return next();
   } else {
-    await auth(c, next);
+    return await auth(c, next);
   }
 });
 app.use("/api/v1/artist/*", async (c, next) => {
   if (c.req.method === "GET") {
     return next();
   } else {
-    await auth(c, next);
+    return await auth(c, next);
   }
 });
 
 app.onError(async (err, c) => {
+  console.log("error: ", err, c);
   const res = JSON.parse(err.message);
   return c.json(res, res.code);
 });
@@ -106,7 +107,7 @@ app.patch(
       Response.success(
         await userService.updateUser(
           Number(c.req.param("id")),
-          c.req.valid("json"), 
+          c.req.valid("json"),
           getAuthenticatedUserId(c)
         )
       )
@@ -135,9 +136,7 @@ app.get("/api/v1/artist/:id", async (c) => {
   const artistService = c.get(Service.ARTIST);
   return c.json(
     Response.success(
-      Response.success(
-        await artistService.getArtistById(Number(c.req.param("id")))
-      )
+      await artistService.getArtistById(Number(c.req.param("id")))
     )
   );
 });

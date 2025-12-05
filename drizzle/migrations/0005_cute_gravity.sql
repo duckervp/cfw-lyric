@@ -1,0 +1,1 @@
+ALTER TABLE `song_artist` RENAME COLUMN "type" TO "role";

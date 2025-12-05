@@ -33,7 +33,7 @@ export class SongService {
     const artists = songData.artists.map((artist) => ({
       songId: song.id,
       artistId: artist.artistId,
-      type: artist.type,
+      role: artist.role,
     }));
     await this.songArtistRepository.create(artists);
     return song;
@@ -50,7 +50,7 @@ export class SongService {
       .map((songArtist) => ({
         songId: song.id,
         artistId: songArtist.artistId,
-        type: songArtist.type,
+        role: songArtist.role,
       }));
 
     await this.songArtistRepository.create(newSongArtists ?? []);
@@ -79,7 +79,7 @@ export class SongService {
         id: songArtist.id,
         songId: song.id,
         artistId: songArtist.artistId,
-        type: songArtist.type,
+        role: songArtist.role,
       }));
 
     await this.songArtistRepository.updateMany(updateSongArtists ?? []);
