@@ -1,10 +1,10 @@
-import { eq, like } from "drizzle-orm";
+import { eq, inArray, like } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { user } from "../db/schema";
 import { alias } from "drizzle-orm/sqlite-core";
+import { BaseRepository } from "./baseRepository";
 
-export class UserRepository {
-  constructor(private db: DrizzleD1Database) { }
+export class UserRepository extends BaseRepository {
 
   async findAll(name: string) {
     return await this.db
@@ -89,4 +89,10 @@ export class UserRepository {
   async delete(id: number) {
     return await this.db.delete(user).where(eq(user.id, id)).returning().get();
   }
+
+
+  async deleteMany(ids: number[]) {
+    return await this.db.delete(user).where(inArray(user.id, ids)).returning().get();
+  }
+
 }

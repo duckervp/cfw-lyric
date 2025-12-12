@@ -40,7 +40,7 @@ export const song = table(
     id: int().primaryKey({ autoIncrement: true }),
     slug: text(),
     title: text(),
-    image_Url: text("image_url"),
+    imageUrl: text("image_url"),
     description: text(),
     artist: text(),
     lyric: text(),

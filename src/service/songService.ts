@@ -6,7 +6,7 @@ export class SongService {
   constructor(
     private songRepository: SongRepository,
     private songArtistRepository: SongArtistRepository
-  ) {}
+  ) { }
 
   async getAllSongs(
     title?: string,
@@ -35,62 +35,67 @@ export class SongService {
       artistId: artist.artistId,
       role: artist.role,
     }));
-    await this.songArtistRepository.create(artists);
+    if (artists.length > 0) {
+      await this.songArtistRepository.create(artists);
+    }
     return song;
   }
 
   async updateSong(id: number, songData: Partial<SongInput>) {
     const song = await this.songRepository.findById(id);
-    if (!song) {
-      throw new Error("Song not found");
-    }
+      if (!song) {
+        throw new Error("Song not found");
+      }
 
-    const newSongArtists = songData.artists
-      ?.filter((songArtist) => songArtist.id === undefined)
-      .map((songArtist) => ({
-        songId: song.id,
-        artistId: songArtist.artistId,
-        role: songArtist.role,
-      }));
+      const newSongArtists = songData.artists
+        ?.filter((songArtist) => songArtist.id === undefined)
+        .map((songArtist) => ({
+          songId: song.id,
+          artistId: songArtist.artistId,
+          role: songArtist.role,
+        }));
 
-    await this.songArtistRepository.create(newSongArtists ?? []);
+      if (newSongArtists && newSongArtists.length > 0) {
+        await this.songArtistRepository.create(newSongArtists);
+      }
 
-    const oldSongArtists = await this.songArtistRepository.findBySongId(
-      song.id
-    );
+      const oldSongArtists = await this.songArtistRepository.findBySongId(
+        song.id
+      );
 
-    const deleteSongArtistIds = oldSongArtists
-      .filter((oldSongArtist) =>
-        songData.artists?.every(
-          (songArtist) => songArtist.id !== oldSongArtist.id
+      const deleteSongArtistIds = oldSongArtists
+        .filter((oldSongArtist) =>
+          songData.artists?.every(
+            (songArtist) => songArtist.id !== oldSongArtist.id
+          )
         )
-      )
-      .map((songArtist) => songArtist.id);
+        .map((songArtist) => songArtist.id);
 
-    await this.songArtistRepository.deleteMany(deleteSongArtistIds);
+      await this.songArtistRepository.deleteMany(deleteSongArtistIds);
 
-    const updateSongArtists = songData.artists
-      ?.filter(
-        (songArtist) =>
-          songArtist.id !== undefined &&
-          !deleteSongArtistIds.includes(songArtist.id)
-      )
-      .map((songArtist) => ({
-        id: songArtist.id,
-        songId: song.id,
-        artistId: songArtist.artistId,
-        role: songArtist.role,
-      }));
+      const updateSongArtists = songData.artists
+        ?.filter(
+          (songArtist) =>
+            songArtist.id !== undefined &&
+            !deleteSongArtistIds.includes(songArtist.id)
+        )
+        .map((songArtist) => ({
+          id: songArtist.id,
+          songId: song.id,
+          artistId: songArtist.artistId,
+          role: songArtist.role,
+        }));
 
-    await this.songArtistRepository.updateMany(updateSongArtists ?? []);
+      await this.songArtistRepository.updateMany(updateSongArtists ?? []);
 
-    const songUpdate = { ...songData };
-    delete songUpdate.artists;
+      const songUpdate = { ...songData };
+      delete songUpdate.artists;
 
-    return await this.songRepository.update(id, songUpdate);
+      await this.songRepository.update(id, songUpdate);
   }
 
   async deleteSong(id: number) {
-    return await this.songRepository.delete(id);
+      await this.songArtistRepository.deleteBySongId(id);
+      await this.songRepository.delete(id);
   }
 }

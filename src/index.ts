@@ -117,8 +117,22 @@ app.patch(
 
 app.delete("/api/v1/user/:id", async (c) => {
   const userService = c.get(Service.USER);
+
+  const raw = c.req.param("id");
+  const ids = raw.split(",").map(id => Number(id.trim()));
+
+  if (ids.length == 0) {
+    return c.json(Response.badRequest("Invalid ids"))
+  }
+
+  if (ids.length > 1) {
+    return c.json(
+      Response.success(await userService.deleteUsers(ids))
+    );
+  }
+
   return c.json(
-    Response.success(await userService.deleteUser(Number(c.req.param("id"))))
+    Response.success(await userService.deleteUser(ids[0]))
   );
 });
 

@@ -34,4 +34,8 @@ export class UserService {
   async deleteUser(id: number) {
     return await this.userRepository.delete(id);
   }
+
+  async deleteUsers(ids: number[]) {
+    return await this.userRepository.deleteMany(ids);
+  }
 }
