@@ -91,7 +91,7 @@ export class UserRepository extends BaseRepository {
   }
 
 
-  async deleteMany(ids: number[]) {
+  async deleteAll(ids: number[]) {
     return await this.db.delete(user).where(inArray(user.id, ids)).returning().get();
   }
 

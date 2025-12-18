@@ -18,7 +18,7 @@ export class SongArtistRepository extends BaseRepository {
       .get();
   }
 
-  async updateMany(datas: (typeof songArtist.$inferInsert)[]) {
+  async updateAll(datas: (typeof songArtist.$inferInsert)[]) {
     const updates = datas
       .filter((data) => data.id !== undefined)
       .map((data) =>
@@ -46,7 +46,19 @@ export class SongArtistRepository extends BaseRepository {
     return await this.db.delete(songArtist).where(eq(songArtist.songId, songId)).execute();
   }
 
-  async deleteMany(ids: number[]) {
+  async deleteBySongIds(songIds: number[]) {
+    return await this.db.delete(songArtist).where(inArray(songArtist.songId, songIds)).execute();
+  }
+
+  async deleteByArtistId(artistId: number) {
+    return await this.db.delete(songArtist).where(eq(songArtist.artistId, artistId)).execute();
+  }
+
+  async deleteByArtistIds(artistIds: number[]) {
+    return await this.db.delete(songArtist).where(inArray(songArtist.artistId, artistIds)).execute();
+  }
+
+  async deleteAll(ids: number[]) {
     return await this.db
       .delete(songArtist)
       .where(inArray(songArtist.id, ids))

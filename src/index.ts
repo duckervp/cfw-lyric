@@ -180,10 +180,21 @@ app.patch(
 
 app.delete("/api/v1/artist/:id", async (c) => {
   const artistService = c.get(Service.ARTIST);
+  const raw = c.req.param("id");
+  const ids = raw.split(",").map(id => Number(id.trim()));
+
+  if (ids.length == 0) {
+    return c.json(Response.badRequest("Invalid ids"))
+  }
+
+  if (ids.length > 1) {
+    return c.json(
+      Response.success(await artistService.deleteArtists(ids))
+    );
+  }
+
   return c.json(
-    Response.success(
-      await artistService.deleteArtist(Number(c.req.param("id")))
-    )
+    Response.success(await artistService.deleteArtist(ids[0]))
   );
 });
 
@@ -238,9 +249,21 @@ app.patch(
 );
 
 app.delete("/api/v1/song/:id", async (c) => {
-  const songService = c.get(Service.SONG);
+  const songService = c.get(Service.SONG);const raw = c.req.param("id");
+  const ids = raw.split(",").map(id => Number(id.trim()));
+
+  if (ids.length == 0) {
+    return c.json(Response.badRequest("Invalid ids"))
+  }
+
+  if (ids.length > 1) {
+    return c.json(
+      Response.success(await songService.deleteSongs(ids))
+    );
+  }
+
   return c.json(
-    Response.success(await songService.deleteSong(Number(c.req.param("id"))))
+    Response.success(await songService.deleteSong(ids[0]))
   );
 });
 

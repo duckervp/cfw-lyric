@@ -1,8 +1,12 @@
 import { ArtistRepository } from '../repository/artistRepository';
+import { SongArtistRepository } from '../repository/songArtistRepository';
 import { ArtistInput } from '../schema/artistSchema';
 
 export class ArtistService {
-  constructor(private artistRepository: ArtistRepository) {}
+  constructor(
+    private artistRepository: ArtistRepository,
+    private songArtistRepository: SongArtistRepository
+  ) { }
 
   async getAllArtists(name: string) {
     return await this.artistRepository.findAll(name)
@@ -11,7 +15,7 @@ export class ArtistService {
   async getArtistById(id: number) {
     return await this.artistRepository.findById(id)
   }
-  
+
   async createArtist(artistData: ArtistInput) {
     return await this.artistRepository.create(artistData)
   }
@@ -21,6 +25,14 @@ export class ArtistService {
   }
 
   async deleteArtist(id: number) {
+    await this.songArtistRepository.deleteByArtistId(id);
+
     return await this.artistRepository.delete(id)
+  }
+
+  async deleteArtists(ids: number[]) {
+    await this.songArtistRepository.deleteByArtistIds(ids);
+
+    return await this.artistRepository.deleteAll(ids);
   }
 } 

@@ -31,7 +31,7 @@ export class ArtistRepository extends BaseRepository {
       .execute();
   }
 
-  async deleteMany(ids: number[]) {
+  async deleteAll(ids: number[]) {
     return await this.db
       .delete(artist)
       .where(inArray(artist.id, ids))

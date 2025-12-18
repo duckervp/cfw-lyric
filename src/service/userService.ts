@@ -36,6 +36,6 @@ export class UserService {
   }
 
   async deleteUsers(ids: number[]) {
-    return await this.userRepository.deleteMany(ids);
+    return await this.userRepository.deleteAll(ids);
   }
 }

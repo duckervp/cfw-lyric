@@ -1,4 +1,4 @@
-import { and, eq, getTableColumns, like, sql } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, like, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { song, songArtist, artist as artistTable, artist } from "../db/schema";
 import { alias } from "drizzle-orm/sqlite-core";
@@ -112,5 +112,9 @@ export class SongRepository extends BaseRepository {
 
   async delete(id: number) {
     return await this.db.delete(song).where(eq(song.id, id)).returning().get();
+  }
+
+  async deleteAll(ids: number[]) {
+    return await this.db.delete(song).where(inArray(song.id, ids)).returning().get();
   }
 }

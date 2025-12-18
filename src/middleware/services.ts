@@ -23,13 +23,13 @@ export async function initServices(c: Context<Env>, next: Next) {
   if (!c.get(Service.AUTH)) {
     c.set(Service.AUTH, new AuthService(c, userRepo))
   }
-  
+
   if (!c.get(Service.USER)) {
     c.set(Service.USER, new UserService(userRepo))
   }
 
   if (!c.get(Service.ARTIST)) {
-    c.set(Service.ARTIST, new ArtistService(artistRepo))
+    c.set(Service.ARTIST, new ArtistService(artistRepo, songArtistRepo))
   }
 
   if (!c.get(Service.SONG)) {
