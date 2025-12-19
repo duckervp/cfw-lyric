@@ -1,6 +1,9 @@
+import { verify } from "hono/jwt";
 import { UserRepository } from "../repository/userRepository";
-import { UserInput } from "../schema/userSchema";
-import { hashPassword } from "../utils/bcrypt";
+import { UserInput, UserPasswordInput, UserProfileInput } from "../schema/userSchema";
+import { hashPassword, verifyPassword } from "../utils/bcrypt";
+import { ApiException } from "../utils/apiException";
+import { password } from "bun";
 
 export class UserService {
   constructor(private userRepository: UserRepository) { }
@@ -28,6 +31,29 @@ export class UserService {
       userData.password = hashedPassword;
     }
     const updateData = { ...userData, updatedBy: updater };
+    return await this.userRepository.update(id, updateData);
+  }
+
+  async updateUserProfile(id: number, userData: Partial<UserProfileInput>, updater: number) {
+    const updateData = { ...userData, updatedBy: updater };
+    return await this.userRepository.update(id, updateData);
+  }
+
+  async updateUserPassword(id: number, userData: UserPasswordInput, updater: number) {
+    const user = await this.userRepository.findById(id);
+
+    if (!user) {
+      throw new ApiException(401, "Invalid credentials");
+    }
+
+    if (await verifyPassword(userData.currentPassword, user.password)) {
+      throw new ApiException(400, "Invalid password");
+    }
+
+    const hashedPassword = await hashPassword(userData.newPassword);
+
+    const updateData = { password: hashedPassword, updatedBy: updater };
+
     return await this.userRepository.update(id, updateData);
   }
 

@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import { auth } from "./middleware/auth";
+import { auth, requireRole, requireRoleOrOwner, Role } from "./middleware/auth";
 import { dbMiddleware } from "./middleware/db";
 import { Env } from "./types/env";
 import { initRepositories } from "./middleware/repositories";
 import { initServices, Service } from "./middleware/services";
-import { userSchema } from "./schema/userSchema";
+import { userInfoSchema, userPasswordSchema, userSchema } from "./schema/userSchema";
 import { zValidator } from "@hono/zod-validator";
 import { songSchema } from "./schema/songSchema";
 import { cors } from "hono/cors";
@@ -31,19 +31,35 @@ app.use("*", dbMiddleware);
 app.use("*", initRepositories);
 app.use("*", initServices);
 app.use("/api/v1/user/*", auth);
+
 app.use("/api/v1/song/*", async (c, next) => {
   if (c.req.method === "GET") {
     return next();
-  } else {
-    return await auth(c, next);
   }
+
+  return auth(c, next);
+});
+app.use("/api/v1/song/*", async (c, next) => {
+  if (c.req.method === "GET") {
+    return next();
+  }
+
+  return requireRole(Role.ADMIN)(c, next);
+});
+
+app.use("/api/v1/artist/*", async (c, next) => {
+  if (c.req.method === "GET") {
+    return next();
+  }
+
+  return auth(c, next);
 });
 app.use("/api/v1/artist/*", async (c, next) => {
   if (c.req.method === "GET") {
     return next();
-  } else {
-    return await auth(c, next);
   }
+
+  return requireRole(Role.ADMIN)(c, next);
 });
 
 app.onError(async (err, c) => {
@@ -78,20 +94,20 @@ app.post("/api/v1/auth/refresh-token", async (c) => {
 // User
 // ------------------------------------------------------------------
 
-app.get("/api/v1/user", async (c) => {
+app.get("/api/v1/user", requireRole(Role.ADMIN), async (c) => {
   const { name = "" } = c.req.query();
   const userService = c.get(Service.USER);
   return c.json(Response.success(await userService.getAllUsers(name)));
 });
 
-app.get("/api/v1/user/:id", async (c) => {
+app.get("/api/v1/user/:id", requireRoleOrOwner(Role.ADMIN), async (c) => {
   const userService = c.get(Service.USER);
   return c.json(
     Response.success(await userService.getUserById(Number(c.req.param("id"))))
   );
 });
 
-app.post("/api/v1/user", zValidator("json", userSchema), async (c) => {
+app.post("/api/v1/user", requireRole(Role.ADMIN), zValidator("json", userSchema), async (c) => {
   const userService = c.get(Service.USER);
   return c.json(
     Response.success(await userService.createUser(c.req.valid("json"), getAuthenticatedUserId(c)))
@@ -99,7 +115,7 @@ app.post("/api/v1/user", zValidator("json", userSchema), async (c) => {
 });
 
 app.patch(
-  "/api/v1/user/:id",
+  "/api/v1/user/:id", requireRole(Role.ADMIN),
   zValidator("json", userSchema.partial()),
   async (c) => {
     const userService = c.get(Service.USER);
@@ -115,7 +131,7 @@ app.patch(
   }
 );
 
-app.delete("/api/v1/user/:id", async (c) => {
+app.delete("/api/v1/user/:id", requireRole(Role.ADMIN), async (c) => {
   const userService = c.get(Service.USER);
 
   const raw = c.req.param("id");
@@ -135,6 +151,40 @@ app.delete("/api/v1/user/:id", async (c) => {
     Response.success(await userService.deleteUser(ids[0]))
   );
 });
+
+app.patch(
+  "/api/v1/user/:id/profile", requireRole(Role.ADMIN),
+  zValidator("json", userInfoSchema),
+  async (c) => {
+    const userService = c.get(Service.USER);
+    return c.json(
+      Response.success(
+        await userService.updateUserProfile(
+          Number(c.req.param("id")),
+          c.req.valid("json"),
+          getAuthenticatedUserId(c)
+        )
+      )
+    );
+  }
+);
+
+app.patch(
+  "/api/v1/user/:id/password", requireRole(Role.ADMIN),
+  zValidator("json", userPasswordSchema),
+  async (c) => {
+    const userService = c.get(Service.USER);
+    return c.json(
+      Response.success(
+        await userService.updateUser(
+          Number(c.req.param("id")),
+          c.req.valid("json"),
+          getAuthenticatedUserId(c)
+        )
+      )
+    );
+  }
+);
 
 // ------------------------------------------------------------------
 // Artist
@@ -214,7 +264,6 @@ app.get("/api/v1/song", async (c) => {
     Number(page),
     Number(pageSize)
   );
-  console.log(data, meta);
   return c.json(Response.successWithPage(data, meta));
 });
 
@@ -249,7 +298,7 @@ app.patch(
 );
 
 app.delete("/api/v1/song/:id", async (c) => {
-  const songService = c.get(Service.SONG);const raw = c.req.param("id");
+  const songService = c.get(Service.SONG); const raw = c.req.param("id");
   const ids = raw.split(",").map(id => Number(id.trim()));
 
   if (ids.length == 0) {
