@@ -46,13 +46,20 @@ export class UserService {
       throw new ApiException(401, "Invalid credentials");
     }
 
-    if (await verifyPassword(userData.currentPassword, user.password)) {
+    const isValid = await verifyPassword(userData.currentPassword, user.password);
+    if (!isValid) {
       throw new ApiException(400, "Invalid password");
     }
 
     const hashedPassword = await hashPassword(userData.newPassword);
 
     const updateData = { password: hashedPassword, updatedBy: updater };
+
+    return await this.userRepository.update(id, updateData);
+  }
+
+  async inactiveUserAccount(id: number, updater: number) {
+    const updateData = { active: false, updatedBy: updater };
 
     return await this.userRepository.update(id, updateData);
   }

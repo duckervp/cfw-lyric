@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { auth, requireRole, requireRoleOrOwner, Role } from "./middleware/auth";
+import { auth, requireOwner, requireRole, requireRoleOrOwner, Role } from "./middleware/auth";
 import { dbMiddleware } from "./middleware/db";
 import { Env } from "./types/env";
 import { initRepositories } from "./middleware/repositories";
@@ -153,7 +153,7 @@ app.delete("/api/v1/user/:id", requireRole(Role.ADMIN), async (c) => {
 });
 
 app.patch(
-  "/api/v1/user/:id/profile", requireRole(Role.ADMIN),
+  "/api/v1/user/:id/profile", requireOwner(),
   zValidator("json", userInfoSchema),
   async (c) => {
     const userService = c.get(Service.USER);
@@ -170,15 +170,30 @@ app.patch(
 );
 
 app.patch(
-  "/api/v1/user/:id/password", requireRole(Role.ADMIN),
+  "/api/v1/user/:id/password", requireOwner(),
   zValidator("json", userPasswordSchema),
   async (c) => {
     const userService = c.get(Service.USER);
     return c.json(
       Response.success(
-        await userService.updateUser(
+        await userService.updateUserPassword(
           Number(c.req.param("id")),
           c.req.valid("json"),
+          getAuthenticatedUserId(c)
+        )
+      )
+    );
+  }
+);
+
+app.patch(
+  "/api/v1/user/:id/inactive", requireOwner(),
+  async (c) => {
+    const userService = c.get(Service.USER);
+    return c.json(
+      Response.success(
+        await userService.inactiveUserAccount(
+          Number(c.req.param("id")),
           getAuthenticatedUserId(c)
         )
       )

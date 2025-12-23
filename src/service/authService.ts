@@ -62,6 +62,14 @@ export class AuthService {
       throw new ApiException(401, "Invalid credentials");
     }
 
+    if (!user.verified) {
+      throw new ApiException(403, "User is not verified");
+    }
+
+    if (!user.active) {
+      throw new ApiException(403, "User is inactive");
+    }
+
     const isValid = await verifyPassword(req.password, user.password);
     if (!isValid) {
       throw new ApiException(401, "Invalid credentials");

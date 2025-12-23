@@ -38,9 +38,23 @@ export const requireRoleOrOwner = (role: string) => {
     const id = c.req.param("id");
 
     if (!payload || role !== payload.role) {
-      if (!id || id !== payload.userId) {
+      if (!id || id != payload.userId) {
         return c.json({ message: 'Forbidden' }, 403);
       }
+    }
+
+    return await next();
+  }
+}
+
+export const requireOwner = () => {
+  return async (c: Context, next: Next) => {
+    const payload = c.get('jwtPayload');
+
+    const id = c.req.param("id");
+
+    if (!id || id != payload.userId) {
+      return c.json({ message: 'Forbidden' }, 403);
     }
 
     return await next();
