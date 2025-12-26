@@ -289,6 +289,16 @@ app.get("/api/v1/song/:id", async (c) => {
   );
 });
 
+app.get("/api/v1/song/sl/:id", async (c) => {
+  const songService = c.get(Service.SONG);
+
+  const id = c.req.param("id");
+
+  return c.json(
+    Response.success(await songService.getSongBySlug(id))
+  );
+});
+
 app.post("/api/v1/song", zValidator("json", songSchema), async (c) => {
   const songService = c.get(Service.SONG);
   return c.json(

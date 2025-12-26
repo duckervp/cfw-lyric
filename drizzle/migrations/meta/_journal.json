@@ -43,6 +43,20 @@
       "when": 1764581271298,
       "tag": "0005_cute_gravity",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1766733444330,
+      "tag": "0006_worthless_doctor_doom",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1766745419086,
+      "tag": "0007_bright_blue_marvel",
+      "breakpoints": true
     }
   ]
 }
