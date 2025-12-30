@@ -5,57 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1741664874104,
-      "tag": "0000_slippery_famine",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1741753446755,
-      "tag": "0001_short_silver_sable",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1741753502252,
-      "tag": "0002_spotty_champions",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1744548725806,
-      "tag": "0003_spotty_ultimo",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1764580908276,
-      "tag": "0004_whole_bucky",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1764581271298,
-      "tag": "0005_cute_gravity",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1766733444330,
-      "tag": "0006_worthless_doctor_doom",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "6",
-      "when": 1766745419086,
-      "tag": "0007_bright_blue_marvel",
+      "when": 1767063600028,
+      "tag": "0000_concerned_lyja",
       "breakpoints": true
     }
   ]

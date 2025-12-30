@@ -9,7 +9,7 @@ const songArtistSchema = z.object({
 
 export const songSchema = z.object({
   title: z.string(),
-  artist: z.string(),
+  artistId: z.number(),
   slug: z.string(),
   imageUrl: z.string(),
   description: z.string(),

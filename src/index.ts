@@ -220,6 +220,15 @@ app.get("/api/v1/artist/:id", async (c) => {
   );
 });
 
+app.get("/api/v1/artist/sl/:id", async (c) => {
+  const artistService = c.get(Service.ARTIST);
+  return c.json(
+    Response.success(
+      await artistService.getArtistBySlug(c.req.param("id"))
+    )
+  );
+});
+
 app.post("/api/v1/artist", zValidator("json", artistSchema), async (c) => {
   const artistService = c.get(Service.ARTIST);
   return c.json(

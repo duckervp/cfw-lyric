@@ -7,7 +7,7 @@ import { vnNormalize } from "../utils/format";
 export class SongRepository extends BaseRepository {
   async findAll(
     title?: string,
-    artistName?: string,
+    artistSlug?: string,
     artistId?: number,
     page?: number,
     pageSize?: number
@@ -16,6 +16,8 @@ export class SongRepository extends BaseRepository {
     const extraArtist = alias(artistTable, "extraArtist");
     const songCols = getTableColumns(song);
 
+    console.log(artistSlug, artistId)
+
     if (!page || !pageSize) {
       return {
         data: await this.db
@@ -23,22 +25,23 @@ export class SongRepository extends BaseRepository {
             ...songCols,
             mainArtistName: mainArtist.name,
             mainArtistImageUrl: mainArtist.imageUrl,
+            mainArtistSlug: mainArtist.slug,
           })
           .from(song)
-          .leftJoin(mainArtist, eq(song.artist, mainArtist.id))
+          .leftJoin(mainArtist, eq(song.artistId, mainArtist.id))
           .leftJoin(songArtist, eq(song.id, songArtist.songId))
           .leftJoin(extraArtist, eq(extraArtist.id, songArtist.artistId))
           .where(
             and(
-              !!title
+              title
                 ? like(song.titleNorm, `%${vnNormalize(title)}%`)
                 : undefined,
-              !!artistName
-                ? like(extraArtist.name, `%${artistName}%`)
+              artistSlug
+                ? eq(extraArtist.slug, artistSlug)
                 : undefined,
-              !!artistId ? eq(extraArtist.id, artistId) : undefined
+              artistId ? eq(extraArtist.id, artistId) : undefined
             )
-          ),
+          ).execute(),
         meta: {
           unpaged: true,
         },
@@ -51,16 +54,17 @@ export class SongRepository extends BaseRepository {
         ...songCols,
         mainArtistName: mainArtist.name,
         mainArtistImageUrl: mainArtist.imageUrl,
+        mainArtistSlug: mainArtist.slug,
       })
       .from(song)
-      .leftJoin(mainArtist, eq(song.artist, mainArtist.id))
+      .leftJoin(mainArtist, eq(song.artistId, mainArtist.id))
       .leftJoin(songArtist, eq(song.id, songArtist.songId))
       .leftJoin(extraArtist, eq(extraArtist.id, songArtist.artistId))
       .where(
         and(
-          !!title ? like(song.titleNorm, `%${vnNormalize(title)}%`) : undefined,
-          !!artistName ? like(extraArtist.name, `%${artistName}%`) : undefined,
-          !!artistId ? eq(extraArtist.id, artistId) : undefined
+          title ? like(song.titleNorm, `%${vnNormalize(title)}%`) : undefined,
+          artistSlug ? eq(extraArtist.slug, artistSlug) : undefined,
+          artistId ? eq(extraArtist.id, artistId) : undefined
         )
       )
       .limit(pageSize)
@@ -74,9 +78,9 @@ export class SongRepository extends BaseRepository {
       .leftJoin(extraArtist, eq(extraArtist.id, songArtist.artistId))
       .where(
         and(
-          !!title ? like(song.titleNorm, `%${vnNormalize(title)}%`) : undefined,
-          !!artist ? like(extraArtist.name, `%${artist}%`) : undefined,
-          !!artistId ? eq(extraArtist.id, artistId) : undefined
+          title ? like(song.titleNorm, `%${vnNormalize(title)}%`) : undefined,
+          artistSlug ? eq(extraArtist.slug, artistSlug) : undefined,
+          artistId ? eq(extraArtist.id, artistId) : undefined
         )
       )
       .execute();
@@ -124,9 +128,10 @@ export class SongRepository extends BaseRepository {
         ...songCols,
         mainArtistName: mainArtist.name,
         mainArtistImageUrl: mainArtist.imageUrl,
+        mainArtistSlug: mainArtist.slug,
       })
       .from(song)
-      .leftJoin(mainArtist, eq(song.artist, mainArtist.id))
+      .leftJoin(mainArtist, eq(song.artistId, mainArtist.id))
       .leftJoin(songArtist, eq(song.id, songArtist.songId))
       .leftJoin(extraArtist, eq(extraArtist.id, songArtist.artistId))
       .where(eq(song.slug, slug))
@@ -138,7 +143,7 @@ export class SongRepository extends BaseRepository {
       const songArtistRecords = await this.db
         .select({
           ...songArtistCols,
-          artistName: artist.name,
+          artistSlug: artist.name,
           artistRole: artist.role,
           artistImageUrl: artist.imageUrl,
         })

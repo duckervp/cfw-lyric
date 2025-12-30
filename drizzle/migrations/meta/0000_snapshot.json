@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b51690fd-aece-4e8a-8447-80d1793f5253",
+  "id": "9142cdaa-35ee-42f0-b525-4d9ac187860c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "artist": {
@@ -21,6 +21,20 @@
           "notNull": false,
           "autoincrement": false
         },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "name_norm": {
+          "name": "name_norm",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "image_url": {
           "name": "image_url",
           "type": "text",
@@ -28,8 +42,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "description": {
-          "name": "description",
+        "bio": {
+          "name": "bio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -73,10 +94,17 @@
         }
       },
       "indexes": {
-        "name_idx": {
-          "name": "name_idx",
+        "atirst_slug_idx": {
+          "name": "atirst_slug_idx",
           "columns": [
-            "name"
+            "slug"
+          ],
+          "isUnique": true
+        },
+        "name_norm_idx": {
+          "name": "name_norm_idx",
+          "columns": [
+            "name_norm"
           ],
           "isUnique": false
         }
@@ -137,6 +165,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "title_norm": {
+          "name": "title_norm",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "image_url": {
           "name": "image_url",
           "type": "text",
@@ -151,9 +186,9 @@
           "notNull": false,
           "autoincrement": false
         },
-        "artist": {
-          "name": "artist",
-          "type": "text",
+        "artist_id": {
+          "name": "artist_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -171,6 +206,30 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "view": {
+          "name": "view",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "fire": {
+          "name": "fire",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "snow": {
+          "name": "snow",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
         },
         "created_at": {
           "name": "created_at",
@@ -217,15 +276,35 @@
           ],
           "isUnique": true
         },
-        "title_idx": {
-          "name": "title_idx",
+        "title_norm_idx": {
+          "name": "title_norm_idx",
           "columns": [
-            "title"
+            "title_norm"
+          ],
+          "isUnique": false
+        },
+        "song_artist_idx": {
+          "name": "song_artist_idx",
+          "columns": [
+            "artist_id"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
+        "song_artist_id_artist_id_fk": {
+          "name": "song_artist_id_artist_id_fk",
+          "tableFrom": "song",
+          "tableTo": "artist",
+          "columnsFrom": [
+            "artist_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "song_created_by_user_id_fk": {
           "name": "song_created_by_user_id_fk",
           "tableFrom": "song",
@@ -281,8 +360,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "type": {
-          "name": "type",
+        "role": {
+          "name": "role",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -325,7 +404,22 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "song_atirst_song_id_idx": {
+          "name": "song_atirst_song_id_idx",
+          "columns": [
+            "song_id"
+          ],
+          "isUnique": false
+        },
+        "song_atirst_artist_id_idx": {
+          "name": "song_atirst_artist_id_idx",
+          "columns": [
+            "artist_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "song_artist_song_id_song_id_fk": {
           "name": "song_artist_song_id_song_id_fk",
@@ -394,15 +488,8 @@
           "notNull": true,
           "autoincrement": true
         },
-        "first_name": {
-          "name": "first_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "last_name": {
-          "name": "last_name",
+        "name": {
+          "name": "name",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -410,6 +497,13 @@
         },
         "email": {
           "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "password": {
+          "name": "password",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -428,6 +522,14 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "verified": {
+          "name": "verified",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": false
         },
         "role": {
           "name": "role",

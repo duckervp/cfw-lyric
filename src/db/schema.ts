@@ -43,7 +43,7 @@ export const song = table(
     titleNorm: text("title_norm"),
     imageUrl: text("image_url"),
     description: text(),
-    artist: text(),
+    artistId: int("artist_id").references(() => artist.id),
     lyric: text(),
     releaseAt: text("release_at"),
     view: int().default(0),
@@ -54,6 +54,7 @@ export const song = table(
   (table) => [
     uniqueIndex("slug_idx").on(table.slug),
     index("title_norm_idx").on(table.titleNorm),
+    index("song_artist_idx").on(table.artistId),
   ]
 );
 
@@ -75,10 +76,17 @@ export const artist = table(
   ]
 );
 
-export const songArtist = table("song_artist", {
-  id: int().primaryKey({ autoIncrement: true }),
-  songId: int("song_id").references(() => song.id),
-  artistId: int("artist_id").references(() => artist.id),
-  role: text().$type<"singer" | "composer" | "singer_composer">(),
-  ...audit,
-});
+export const songArtist = table(
+  "song_artist",
+  {
+    id: int().primaryKey({ autoIncrement: true }),
+    songId: int("song_id").references(() => song.id),
+    artistId: int("artist_id").references(() => artist.id),
+    role: text().$type<"singer" | "composer" | "singer_composer">(),
+    ...audit,
+  },
+  (table) => [
+    index("song_atirst_song_id_idx").on(table.songId),
+    index("song_atirst_artist_id_idx").on(table.artistId),
+  ]
+);
