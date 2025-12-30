@@ -60,10 +60,16 @@ app.use("/api/v1/artist/*", async (c, next) => {
   return requireRole(Role.ADMIN)(c, next);
 });
 
-app.onError(async (err, c) => {
-  console.log("error: ", err, c);
-  const res = JSON.parse(err.message);
-  return c.json(res, res.code);
+app.onError((err, c) => {
+  console.error('Unhandled error:', err);
+
+  return c.json(
+    {
+      success: false,
+      message: err?.message || 'Internal Server Error',
+    },
+    500
+  );
 });
 // ------------------------------------------------------------------
 // Auth
