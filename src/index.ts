@@ -18,14 +18,12 @@ import { getAuthenticatedUserId } from "./utils/auth";
 
 const app = new Hono<Env>();
 
-app.use(
-  "*",
-  cors({
-    origin: "*", // Allow all origins
-    allowMethods: ["GET", "POST", "PATCH", "DELETE"], // Allowed HTTP methods
-    allowHeaders: ["Content-Type", "Authorization"], // Allowed headers
-  })
-);
+app.use('*', cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400,
+}));
 
 app.use("*", dbMiddleware);
 app.use("*", initRepositories);
