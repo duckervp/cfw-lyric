@@ -5,10 +5,6 @@ import type { Env } from '../types/env';
 let jwtMiddleware: MiddlewareHandler<Env> | null = null;
 
 export const auth: MiddlewareHandler<Env> = async (c, next) => {
-  if (c.req.method === 'OPTIONS') {
-    return c.body(null, 204);
-  }
-
   try {
     // lazy init once
     if (!jwtMiddleware) {
@@ -25,11 +21,6 @@ export const auth: MiddlewareHandler<Env> = async (c, next) => {
 
 export const requireRole = (role: string) => {
   return async (c: Context, next: Next) => {
-
-    if (c.req.method === 'OPTIONS') {
-      return c.body(null, 204);
-    }
-
     const payload = c.get('jwtPayload');
 
     if (!payload || role !== payload.role) {
@@ -43,9 +34,6 @@ export const requireRole = (role: string) => {
 export const requireRoleOrOwner = (role: string) => {
   return async (c: Context, next: Next) => {
 
-    if (c.req.method === 'OPTIONS') {
-      return c.body(null, 204);
-    }
     const payload = c.get('jwtPayload');
 
     const id = c.req.param("id");
@@ -62,10 +50,6 @@ export const requireRoleOrOwner = (role: string) => {
 
 export const requireOwner = () => {
   return async (c: Context, next: Next) => {
-    if (c.req.method === 'OPTIONS') {
-      return c.body(null, 204);
-    }
-
     const payload = c.get('jwtPayload');
 
     const id = c.req.param("id");

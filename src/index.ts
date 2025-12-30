@@ -19,7 +19,7 @@ import { getAuthenticatedUserId } from "./utils/auth";
 const app = new Hono<Env>();
 
 app.use('*', cors({
-  origin: '*',
+  origin: ['https://lyric-admin.vercel.app/', 'https://lyrics-zeta-one.vercel.app/'],
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   maxAge: 86400,
