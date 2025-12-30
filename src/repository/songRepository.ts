@@ -1,53 +1,70 @@
 import { and, eq, getTableColumns, inArray, like, sql } from "drizzle-orm";
-import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { song, songArtist, artist as artistTable, artist } from "../db/schema";
 import { alias } from "drizzle-orm/sqlite-core";
 import { BaseRepository } from "./baseRepository";
+import { vnNormalize } from "../utils/format";
 
 export class SongRepository extends BaseRepository {
-
   async findAll(
     title?: string,
-    artistName?: string,
+    artistSlug?: string,
     artistId?: number,
     page?: number,
     pageSize?: number
   ) {
-
     const mainArtist = alias(artistTable, "mainArtist");
     const extraArtist = alias(artistTable, "extraArtist");
     const songCols = getTableColumns(song);
 
+    console.log(artistSlug, artistId)
+
     if (!page || !pageSize) {
       return {
-        data: await this.db.selectDistinct({ ...songCols, mainArtistName: mainArtist.name, mainArtistImageUrl: mainArtist.imageUrl }).from(song)
-          .leftJoin(mainArtist, eq(song.artist, mainArtist.id))
+        data: await this.db
+          .selectDistinct({
+            ...songCols,
+            mainArtistName: mainArtist.name,
+            mainArtistImageUrl: mainArtist.imageUrl,
+            mainArtistSlug: mainArtist.slug,
+          })
+          .from(song)
+          .leftJoin(mainArtist, eq(song.artistId, mainArtist.id))
           .leftJoin(songArtist, eq(song.id, songArtist.songId))
           .leftJoin(extraArtist, eq(extraArtist.id, songArtist.artistId))
           .where(
             and(
-              !!title ? like(song.title, `%${title}%`) : undefined,
-              !!artistName ? like(extraArtist.name, `%${artistName}%`) : undefined,
-              !!artistId ? eq(extraArtist.id, artistId) : undefined
+              title
+                ? like(song.titleNorm, `%${vnNormalize(title)}%`)
+                : undefined,
+              artistSlug
+                ? eq(extraArtist.slug, artistSlug)
+                : undefined,
+              artistId ? eq(extraArtist.id, artistId) : undefined
             )
-          ), meta: {
-            unpaged: true
-          }
-      }
+          ).execute(),
+        meta: {
+          unpaged: true,
+        },
+      };
     }
 
     const offset = (page - 1) * pageSize;
     const songList = await this.db
-      .selectDistinct()
-      .from({ ...song, artistName: artist.name, artistImageUrl: artist.imageUrl })
-      .leftJoin(mainArtist, eq(song.artist, mainArtist.id))
+      .selectDistinct({
+        ...songCols,
+        mainArtistName: mainArtist.name,
+        mainArtistImageUrl: mainArtist.imageUrl,
+        mainArtistSlug: mainArtist.slug,
+      })
+      .from(song)
+      .leftJoin(mainArtist, eq(song.artistId, mainArtist.id))
       .leftJoin(songArtist, eq(song.id, songArtist.songId))
       .leftJoin(extraArtist, eq(extraArtist.id, songArtist.artistId))
       .where(
         and(
-          !!title ? like(song.title, `%${title}%`) : undefined,
-          !!artistName ? like(extraArtist.name, `%${artistName}%`) : undefined,
-          !!artistId ? eq(extraArtist.id, artistId) : undefined
+          title ? like(song.titleNorm, `%${vnNormalize(title)}%`) : undefined,
+          artistSlug ? eq(extraArtist.slug, artistSlug) : undefined,
+          artistId ? eq(extraArtist.id, artistId) : undefined
         )
       )
       .limit(pageSize)
@@ -61,9 +78,9 @@ export class SongRepository extends BaseRepository {
       .leftJoin(extraArtist, eq(extraArtist.id, songArtist.artistId))
       .where(
         and(
-          !!title ? like(song.title, `%${title}%`) : undefined,
-          !!artist ? like(extraArtist.name, `%${artist}%`) : undefined,
-          !!artistId ? eq(extraArtist.id, artistId) : undefined
+          title ? like(song.titleNorm, `%${vnNormalize(title)}%`) : undefined,
+          artistSlug ? eq(extraArtist.slug, artistSlug) : undefined,
+          artistId ? eq(extraArtist.id, artistId) : undefined
         )
       )
       .execute();
@@ -82,11 +99,19 @@ export class SongRepository extends BaseRepository {
   }
 
   async findById(id: number) {
-    const songRecord = await this.db.select().from(song).where(eq(song.id, id)).get();
+    const songRecord = await this.db
+      .select()
+      .from(song)
+      .where(eq(song.id, id))
+      .get();
     const result: any = { ...songRecord };
 
     if (songRecord) {
-      const songArtistRecords = await this.db.select().from(songArtist).where(eq(songArtist.songId, songRecord.id)).execute();
+      const songArtistRecords = await this.db
+        .select()
+        .from(songArtist)
+        .where(eq(songArtist.songId, songRecord.id))
+        .execute();
       result.artists = songArtistRecords;
     }
 
@@ -94,17 +119,54 @@ export class SongRepository extends BaseRepository {
   }
 
   async findBySlug(slug: string) {
-    return await this.db.select().from(song).where(eq(song.slug, slug)).get();
+    const mainArtist = alias(artistTable, "mainArtist");
+    const extraArtist = alias(artistTable, "extraArtist");
+    const songCols = getTableColumns(song);
+
+    const songRecord = await this.db
+      .selectDistinct({
+        ...songCols,
+        mainArtistName: mainArtist.name,
+        mainArtistImageUrl: mainArtist.imageUrl,
+        mainArtistSlug: mainArtist.slug,
+      })
+      .from(song)
+      .leftJoin(mainArtist, eq(song.artistId, mainArtist.id))
+      .leftJoin(songArtist, eq(song.id, songArtist.songId))
+      .leftJoin(extraArtist, eq(extraArtist.id, songArtist.artistId))
+      .where(eq(song.slug, slug))
+      .get();
+    const result: any = { ...songRecord };
+
+    if (songRecord) {
+      const songArtistCols = getTableColumns(songArtist);
+      const songArtistRecords = await this.db
+        .select({
+          ...songArtistCols,
+          artistSlug: artist.name,
+          artistRole: artist.role,
+          artistImageUrl: artist.imageUrl,
+        })
+        .from(songArtist)
+        .innerJoin(artist, eq(songArtist.artistId, artist.id))
+        .where(eq(songArtist.songId, songRecord.id))
+        .execute();
+      result.artists = songArtistRecords;
+    }
+
+    return result;
   }
 
   async create(data: typeof song.$inferInsert) {
-    return await this.db.insert(song).values(data).returning().get();
+    const songData = { ...data, titleNorm: vnNormalize(data.title) };
+    return await this.db.insert(song).values(songData).returning().get();
   }
 
   async update(id: number, data: Partial<typeof song.$inferInsert>) {
+    const songData = { ...data, titleNorm: vnNormalize(data.title) };
     return await this.db
       .update(song)
-      .set(data)
+      .set(songData)
       .where(eq(song.id, id))
       .returning()
       .get();
@@ -115,6 +177,10 @@ export class SongRepository extends BaseRepository {
   }
 
   async deleteAll(ids: number[]) {
-    return await this.db.delete(song).where(inArray(song.id, ids)).returning().get();
+    return await this.db
+      .delete(song)
+      .where(inArray(song.id, ids))
+      .returning()
+      .get();
   }
 }

@@ -16,6 +16,10 @@ export class ArtistService {
     return await this.artistRepository.findById(id)
   }
 
+  async getArtistBySlug(id: string) {
+    return await this.artistRepository.findBySlug(id)
+  }
+
   async createArtist(artistData: ArtistInput) {
     return await this.artistRepository.create(artistData)
   }

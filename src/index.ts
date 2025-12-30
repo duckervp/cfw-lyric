@@ -18,14 +18,12 @@ import { getAuthenticatedUserId } from "./utils/auth";
 
 const app = new Hono<Env>();
 
-app.use(
-  "*",
-  cors({
-    origin: "*", // Allow all origins
-    allowMethods: ["GET", "POST", "PATCH", "DELETE"], // Allowed HTTP methods
-    allowHeaders: ["Content-Type", "Authorization"], // Allowed headers
-  })
-);
+app.use('*', cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400,
+}));
 
 app.use("*", dbMiddleware);
 app.use("*", initRepositories);
@@ -220,6 +218,15 @@ app.get("/api/v1/artist/:id", async (c) => {
   );
 });
 
+app.get("/api/v1/artist/sl/:id", async (c) => {
+  const artistService = c.get(Service.ARTIST);
+  return c.json(
+    Response.success(
+      await artistService.getArtistBySlug(c.req.param("id"))
+    )
+  );
+});
+
 app.post("/api/v1/artist", zValidator("json", artistSchema), async (c) => {
   const artistService = c.get(Service.ARTIST);
   return c.json(
@@ -286,6 +293,16 @@ app.get("/api/v1/song/:id", async (c) => {
   const songService = c.get(Service.SONG);
   return c.json(
     Response.success(await songService.getSongById(Number(c.req.param("id"))))
+  );
+});
+
+app.get("/api/v1/song/sl/:id", async (c) => {
+  const songService = c.get(Service.SONG);
+
+  const id = c.req.param("id");
+
+  return c.json(
+    Response.success(await songService.getSongBySlug(id))
   );
 });
 

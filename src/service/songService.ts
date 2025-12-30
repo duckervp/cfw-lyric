@@ -6,7 +6,7 @@ export class SongService {
   constructor(
     private songRepository: SongRepository,
     private songArtistRepository: SongArtistRepository
-  ) { }
+  ) {}
 
   async getAllSongs(
     title?: string,
@@ -26,6 +26,10 @@ export class SongService {
 
   async getSongById(id: number) {
     return await this.songRepository.findById(id);
+  }
+
+  async getSongBySlug(slug: string) {
+    return await this.songRepository.findBySlug(slug);
   }
 
   async createSong(songData: SongInput) {
