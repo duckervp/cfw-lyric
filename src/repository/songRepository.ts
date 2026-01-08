@@ -1,4 +1,4 @@
-import { and, eq, getTableColumns, inArray, like, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, inArray, like, lt, or, sql } from "drizzle-orm";
 import { song, songArtist, artist as artistTable, artist } from "../db/schema";
 import { alias } from "drizzle-orm/sqlite-core";
 import { BaseRepository } from "./baseRepository";
@@ -15,8 +15,6 @@ export class SongRepository extends BaseRepository {
     const mainArtist = alias(artistTable, "mainArtist");
     const extraArtist = alias(artistTable, "extraArtist");
     const songCols = getTableColumns(song);
-
-    console.log(artistSlug, artistId)
 
     if (!page || !pageSize) {
       return {
@@ -98,6 +96,68 @@ export class SongRepository extends BaseRepository {
     };
   }
 
+  async findAllCursor(
+    title?: string,
+    artistSlug?: string,
+    artistId?: number,
+    limit: number = 10,
+    cursor?: string
+  ) {
+    const mainArtist = alias(artistTable, "mainArtist");
+    const extraArtist = alias(artistTable, "extraArtist");
+    const songCols = getTableColumns(song);
+
+    let cursorWhere = undefined;
+
+    if (cursor) {
+      const { createdAt, id } = JSON.parse(atob(cursor));
+
+      cursorWhere = or(
+        lt(song.createdAt, createdAt),
+        and(eq(song.createdAt, createdAt), lt(song.id, id))
+      );
+    }
+
+    const rows = await this.db
+      .selectDistinct({
+        ...songCols,
+        mainArtistName: mainArtist.name,
+        mainArtistImageUrl: mainArtist.imageUrl,
+        mainArtistSlug: mainArtist.slug,
+      })
+      .from(song)
+      .leftJoin(mainArtist, eq(song.artistId, mainArtist.id))
+      .leftJoin(songArtist, eq(song.id, songArtist.songId))
+      .leftJoin(extraArtist, eq(extraArtist.id, songArtist.artistId))
+      .where(
+        and(
+          title ? like(song.titleNorm, `%${vnNormalize(title)}%`) : undefined,
+          artistSlug ? eq(extraArtist.slug, artistSlug) : undefined,
+          artistId ? eq(extraArtist.id, artistId) : undefined,
+          cursorWhere
+        )
+      )
+      .orderBy(desc(song.createdAt), desc(song.id))
+      .limit(limit + 1)
+      .execute();
+
+    const hasNext = rows.length > limit;
+    const items = hasNext ? rows.slice(0, limit) : rows;
+
+    const nextCursor = hasNext
+      ? btoa(JSON.stringify({
+        createdAt: items[items.length - 1].createdAt,
+        id: items[items.length - 1].id,
+      }))
+      : null;
+
+    return {
+      items,
+      nextCursor,
+      _limit: limit
+    };
+  }
+
   async findById(id: number) {
     const songRecord = await this.db
       .select()
@@ -143,7 +203,8 @@ export class SongRepository extends BaseRepository {
       const songArtistRecords = await this.db
         .select({
           ...songArtistCols,
-          artistSlug: artist.name,
+          artistName: artist.name,
+          artistSlug: artist.slug,
           artistRole: artist.role,
           artistImageUrl: artist.imageUrl,
         })
@@ -163,7 +224,11 @@ export class SongRepository extends BaseRepository {
   }
 
   async update(id: number, data: Partial<typeof song.$inferInsert>) {
-    const songData = { ...data, titleNorm: vnNormalize(data.title) };
+    const songData = { ...data };
+    if (data.title) {
+      songData.titleNorm = vnNormalize(data.title);
+    }
+
     return await this.db
       .update(song)
       .set(songData)

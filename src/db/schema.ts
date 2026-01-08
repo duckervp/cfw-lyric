@@ -55,6 +55,7 @@ export const song = table(
     uniqueIndex("slug_idx").on(table.slug),
     index("title_norm_idx").on(table.titleNorm),
     index("song_artist_idx").on(table.artistId),
+    index("song_created_id_idx").on(table.createdAt, table.id),
   ]
 );
 

@@ -30,15 +30,21 @@ app.use("*", initRepositories);
 app.use("*", initServices);
 app.use("/api/v1/user/*", auth);
 
+const anonymousPath = ['/view', '/fire', '/snow'];
+
+const bypassAnonymousPath = (reqPath: string) => {
+  return anonymousPath.filter(path => reqPath.includes(path)).length > 0;
+}
+
 app.use("/api/v1/song/*", async (c, next) => {
-  if (c.req.method === "GET") {
+  if (c.req.method === "GET" || bypassAnonymousPath(c.req.path)) {
     return next();
   }
 
   return auth(c, next);
 });
 app.use("/api/v1/song/*", async (c, next) => {
-  if (c.req.method === "GET") {
+  if (c.req.method === "GET" || bypassAnonymousPath(c.req.path)) {
     return next();
   }
 
@@ -295,6 +301,21 @@ app.get("/api/v1/song", async (c) => {
   return c.json(Response.successWithPage(data, meta));
 });
 
+app.get("/api/v1/song/c", async (c) => {
+  const songService = c.get(Service.SONG);
+
+  const { title, artist, artistId, limit, cursor } = c.req.query();
+
+  const data = await songService.getAllSongsWithCursor(
+    title,
+    artist,
+    Number(artistId),
+    Number(limit),
+    cursor
+  );
+  return c.json(Response.success(data));
+});
+
 app.get("/api/v1/song/:id", async (c) => {
   const songService = c.get(Service.SONG);
   return c.json(
@@ -316,6 +337,30 @@ app.post("/api/v1/song", zValidator("json", songSchema), async (c) => {
   const songService = c.get(Service.SONG);
   return c.json(
     Response.success(await songService.createSong(c.req.valid("json")))
+  );
+});
+
+app.post("/api/v1/song/:id/view", async (c) => {
+  const id = c.req.param("id");
+  const songService = c.get(Service.SONG);
+  return c.json(
+    Response.success(await songService.increaseView(Number(id)))
+  );
+});
+
+app.post("/api/v1/song/:id/fire", async (c) => {
+  const id = c.req.param("id");
+  const songService = c.get(Service.SONG);
+  return c.json(
+    Response.success(await songService.increaseFire(Number(id)))
+  );
+});
+
+app.post("/api/v1/song/:id/snow", async (c) => {
+  const id = c.req.param("id");
+  const songService = c.get(Service.SONG);
+  return c.json(
+    Response.success(await songService.increaseSnow(Number(id)))
   );
 });
 

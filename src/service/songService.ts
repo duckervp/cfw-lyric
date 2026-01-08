@@ -6,7 +6,7 @@ export class SongService {
   constructor(
     private songRepository: SongRepository,
     private songArtistRepository: SongArtistRepository
-  ) {}
+  ) { }
 
   async getAllSongs(
     title?: string,
@@ -21,6 +21,22 @@ export class SongService {
       artistId,
       page,
       pageSize
+    );
+  }
+
+  async getAllSongsWithCursor(
+    title?: string,
+    artist?: string,
+    artistId?: number,
+    limit?: number,
+    cursor?: string
+  ) {
+    return await this.songRepository.findAllCursor(
+      title,
+      artist,
+      artistId,
+      limit,
+      cursor
     );
   }
 
@@ -47,9 +63,14 @@ export class SongService {
 
   async updateSong(id: number, songData: Partial<SongInput>) {
     const song = await this.songRepository.findById(id);
+
     if (!song) {
       throw new Error("Song not found");
     }
+
+    const oldSongArtists = await this.songArtistRepository.findBySongId(
+      song.id
+    );
 
     const newSongArtists = songData.artists
       ?.filter((songArtist) => songArtist.id === undefined)
@@ -59,13 +80,11 @@ export class SongService {
         role: songArtist.role,
       }));
 
+    console.log(newSongArtists);
+
     if (newSongArtists && newSongArtists.length > 0) {
       await this.songArtistRepository.create(newSongArtists);
     }
-
-    const oldSongArtists = await this.songArtistRepository.findBySongId(
-      song.id
-    );
 
     const deleteSongArtistIds = oldSongArtists
       .filter((oldSongArtist) =>
@@ -106,5 +125,41 @@ export class SongService {
   async deleteSongs(ids: number[]) {
     await this.songArtistRepository.deleteBySongIds(ids);
     return await this.songRepository.deleteAll(ids);
+  }
+
+  async increaseView(id: number) {
+    const song = await this.songRepository.findById(id);
+    if (!song) {
+      throw new Error("Song not found");
+    }
+
+    let view = song.view || 0;
+    view += 1;
+
+    return await this.songRepository.update(id, { view });
+  }
+
+  async increaseFire(id: number) {
+    const song = await this.songRepository.findById(id);
+    if (!song) {
+      throw new Error("Song not found");
+    }
+
+    let fire = song.fire || 0;
+    fire += 1;
+
+    return await this.songRepository.update(id, { fire });
+  }
+
+  async increaseSnow(id: number) {
+    const song = await this.songRepository.findById(id);
+    if (!song) {
+      throw new Error("Song not found");
+    }
+
+    let snow = song.snow || 0;
+    snow += 1;
+
+    return await this.songRepository.update(id, { snow });
   }
 }
